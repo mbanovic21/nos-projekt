@@ -5,6 +5,8 @@ VisualStudioVersion = 17.12.35514.174 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalSignatureApp.WpfUI", "DigitalSignatureApp.WpfUI\DigitalSignatureApp.WpfUI.csproj", "{D6954A90-7100-4597-AC76-733BE556D179}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalSignatureApp.Domain", "DigitalSignatureApp.Domain\DigitalSignatureApp.Domain.csproj", "{18DB9296-FF8C-47E0-9FA9-C5CC0067C17C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{D6954A90-7100-4597-AC76-733BE556D179}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6954A90-7100-4597-AC76-733BE556D179}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6954A90-7100-4597-AC76-733BE556D179}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18DB9296-FF8C-47E0-9FA9-C5CC0067C17C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18DB9296-FF8C-47E0-9FA9-C5CC0067C17C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18DB9296-FF8C-47E0-9FA9-C5CC0067C17C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18DB9296-FF8C-47E0-9FA9-C5CC0067C17C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
