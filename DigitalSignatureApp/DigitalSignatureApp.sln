@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalSignatureApp.Domain"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalSignatureApp.Application", "DigitalSignatureApp.Application\DigitalSignatureApp.Application.csproj", "{248F56BC-7817-479E-B918-CA9975FDB2CC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalSignatureApp.Infrastructure", "DigitalSignatureApp.Infrastructure\DigitalSignatureApp.Infrastructure.csproj", "{AE8B248A-4697-4E6E-8D99-655D08128DD5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{248F56BC-7817-479E-B918-CA9975FDB2CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{248F56BC-7817-479E-B918-CA9975FDB2CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{248F56BC-7817-479E-B918-CA9975FDB2CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE8B248A-4697-4E6E-8D99-655D08128DD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE8B248A-4697-4E6E-8D99-655D08128DD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE8B248A-4697-4E6E-8D99-655D08128DD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE8B248A-4697-4E6E-8D99-655D08128DD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
