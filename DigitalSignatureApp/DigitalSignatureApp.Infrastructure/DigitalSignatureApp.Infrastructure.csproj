@@ -6,4 +6,15 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Crypto\" />
+    <Folder Include="Config\" />
+    <Folder Include="Storage\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DigitalSignatureApp.Application\DigitalSignatureApp.Application.csproj" />
+    <ProjectReference Include="..\DigitalSignatureApp.Domain\DigitalSignatureApp.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
