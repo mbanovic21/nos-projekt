@@ -24,7 +24,7 @@ namespace DigitalSignatureApp.Infrastructure.Services
 
             IKey privateKey = new PrivateKey
             {
-                KeyValue = Convert.ToBase64String(rsa.ExportSubjectPublicKeyInfo()),
+                KeyValue = Convert.ToBase64String(rsa.ExportPkcs8PrivateKey()),
                 CreatedAt = DateTime.UtcNow
             };
 
