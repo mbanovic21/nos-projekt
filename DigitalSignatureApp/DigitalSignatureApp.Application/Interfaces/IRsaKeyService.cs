@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DigitalSignatureApp.Application.Interfaces
 {
-    public interface IKeyService
+    public interface IRsaKeyService
     {
         KeyPair GenerateKeyPair(int keySize = 2048);
         void SaveKeysToFiles(KeyPair keyPair);

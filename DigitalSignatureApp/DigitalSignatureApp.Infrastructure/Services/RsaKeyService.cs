@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DigitalSignatureApp.Infrastructure.Services
 {
-    public class RsaKeyService : IKeyService
+    public class RsaKeyService : IRsaKeyService
     {
         private readonly string keysFolder;
         private readonly string publicKeyPath;
