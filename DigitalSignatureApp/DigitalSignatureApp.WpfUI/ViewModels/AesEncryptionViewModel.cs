@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows;
+using DigitalSignatureApp.Infrastructure.Services;
+using System.IO;
 
 namespace DigitalSignatureApp.WpfUI.ViewModels
 {
@@ -24,30 +26,42 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         public string InputFilePath
         {
             get => _inputFilePath;
-            set { _inputFilePath = value; OnPropertyChanged(); }
+            set 
+            { 
+                _inputFilePath = value; 
+                OnPropertyChanged();
+                EncryptCommand.NotifyCanExecuteChanged();
+                DecryptCommand.NotifyCanExecuteChanged();
+            }
         }
 
         public string OutputFilePath
         {
             get => _outputFilePath;
-            set { _outputFilePath = value; OnPropertyChanged(); }
+            set 
+            { 
+                _outputFilePath = value; 
+                OnPropertyChanged();
+                EncryptCommand.NotifyCanExecuteChanged();
+                DecryptCommand.NotifyCanExecuteChanged();
+            }
         }
 
-        public ICommand SelectInputFileCommand { get; }
-        public ICommand SelectOutputFileCommand { get; }
-        public ICommand GenerateKeyCommand { get; }
-        public ICommand EncryptCommand { get; }
-        public ICommand DecryptCommand { get; }
+        public IRelayCommand SelectInputFileCommand { get; }
+        public IRelayCommand SelectOutputFileCommand { get; }
+        public IRelayCommand GenerateKeyCommand { get; }
+        public IRelayCommand EncryptCommand { get; }
+        public IRelayCommand DecryptCommand { get; }
 
-        public AesEncryptionViewModel(IAesService aesService)
+        public AesEncryptionViewModel()
         {
-            _aesService = aesService;
+            _aesService = new AesService();
 
             SelectInputFileCommand = new RelayCommand(SelectInputFile);
             SelectOutputFileCommand = new RelayCommand(SelectOutputFile);
             GenerateKeyCommand = new RelayCommand(GenerateKey);
-            EncryptCommand = new RelayCommand(EncryptFile, CanExecuteCrypto);
-            DecryptCommand = new RelayCommand(DecryptFile, CanExecuteCrypto);
+            EncryptCommand = new RelayCommand(EncryptFile, CanExecuteEncrypt);
+            DecryptCommand = new RelayCommand(DecryptFile, CanExecuteDecrypt);
         }
 
         private void SelectInputFile()
@@ -74,10 +88,18 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         private void GenerateKey()
         {
             (_key, _iv) = _aesService.GenerateKey();
-            MessageBox.Show("AES ključ i IV uspješno generirani!", "Uspjeh", MessageBoxButton.OK, MessageBoxImage.Information);
+            if(_key != null && _iv != null)
+                MessageBox.Show("AES ključ i IV uspješno generirani!", "Uspjeh", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            EncryptCommand.NotifyCanExecuteChanged();
+            DecryptCommand.NotifyCanExecuteChanged();
         }
 
-        private bool CanExecuteCrypto() =>
+        private bool CanExecuteEncrypt() => 
+            !string.IsNullOrEmpty(InputFilePath) && 
+            _key != null && _iv != null;
+
+        private bool CanExecuteDecrypt() =>
             !string.IsNullOrEmpty(InputFilePath) &&
             !string.IsNullOrEmpty(OutputFilePath) &&
             _key != null && _iv != null;
@@ -86,11 +108,15 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         {
             try
             {
-                _aesService.EncryptFile(InputFilePath, OutputFilePath, _key, _iv);
-                MessageBox.Show("Datoteka uspješno enkriptirana.", "AES Enkripcija", MessageBoxButton.OK, MessageBoxImage.Information);
+                var outputPath = Path.ChangeExtension(InputFilePath, ".enc");
+                _aesService.EncryptFile(InputFilePath, outputPath, _key, _iv);
+
+                MessageBox.Show($"Datoteka je uspješno enkriptirana!\nPutanja: {outputPath}",
+                                "Uspjeh", MessageBoxButton.OK, MessageBoxImage.Information);
             } catch (Exception ex)
             {
-                MessageBox.Show($"Greška pri enkripciji: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Greška pri enkripciji: {ex.Message}",
+                                "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -110,5 +136,4 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
-}
 }

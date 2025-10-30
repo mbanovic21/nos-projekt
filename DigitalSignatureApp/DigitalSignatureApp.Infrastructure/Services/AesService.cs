@@ -16,6 +16,8 @@ namespace DigitalSignatureApp.Infrastructure.Services
             aes.KeySize = 256;
             aes.GenerateKey();
             aes.GenerateIV();
+            Console.WriteLine("Generated AES Key: " + Convert.ToBase64String(aes.Key));
+            Console.WriteLine("Generated AES IV: " + Convert.ToBase64String(aes.IV));
             return (aes.Key, aes.IV);
         }
 
