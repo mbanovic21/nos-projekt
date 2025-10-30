@@ -1,17 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using DigitalSignatureApp.Application.Interfaces;
+using DigitalSignatureApp.Infrastructure.Services;
 using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using System.Windows;
-using DigitalSignatureApp.Infrastructure.Services;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Windows;
+using System.Windows.Input;
 
 namespace DigitalSignatureApp.WpfUI.ViewModels
 {
@@ -22,36 +18,47 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         private string _outputFilePath;
         private byte[] _key;
         private byte[] _iv;
+        private bool _isEncryptMode = true;
 
         public string InputFilePath
         {
             get => _inputFilePath;
-            set 
-            { 
-                _inputFilePath = value; 
+            set
+            {
+                _inputFilePath = value;
                 OnPropertyChanged();
-                EncryptCommand.NotifyCanExecuteChanged();
-                DecryptCommand.NotifyCanExecuteChanged();
+                RefreshCommands();
             }
         }
 
         public string OutputFilePath
         {
             get => _outputFilePath;
-            set 
-            { 
-                _outputFilePath = value; 
+            set
+            {
+                _outputFilePath = value;
                 OnPropertyChanged();
-                EncryptCommand.NotifyCanExecuteChanged();
-                DecryptCommand.NotifyCanExecuteChanged();
+                RefreshCommands();
+            }
+        }
+
+        public bool IsEncryptMode
+        {
+            get => _isEncryptMode;
+            set
+            {
+                _isEncryptMode = value;
+                OnPropertyChanged();
+                RefreshCommands();
             }
         }
 
         public IRelayCommand SelectInputFileCommand { get; }
         public IRelayCommand SelectOutputFileCommand { get; }
         public IRelayCommand GenerateKeyCommand { get; }
-        public IRelayCommand EncryptCommand { get; }
-        public IRelayCommand DecryptCommand { get; }
+        public IRelayCommand SaveKeyCommand { get; }
+        public IRelayCommand LoadKeyCommand { get; }
+        public IRelayCommand ExecuteCryptoCommand { get; }
 
         public AesEncryptionViewModel()
         {
@@ -60,8 +67,9 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             SelectInputFileCommand = new RelayCommand(SelectInputFile);
             SelectOutputFileCommand = new RelayCommand(SelectOutputFile);
             GenerateKeyCommand = new RelayCommand(GenerateKey);
-            EncryptCommand = new RelayCommand(EncryptFile, CanExecuteEncrypt);
-            DecryptCommand = new RelayCommand(DecryptFile, CanExecuteDecrypt);
+            SaveKeyCommand = new RelayCommand(SaveKeyToFiles, () => _key != null && _iv != null);
+            LoadKeyCommand = new RelayCommand(LoadKeyFromFiles);
+            ExecuteCryptoCommand = new RelayCommand(ExecuteCrypto, CanExecuteCrypto);
         }
 
         private void SelectInputFile()
@@ -70,6 +78,9 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             if (dialog.ShowDialog() == true)
             {
                 InputFilePath = dialog.FileName;
+                OutputFilePath = IsEncryptMode
+                    ? Path.ChangeExtension(InputFilePath, ".enc")
+                    : Path.ChangeExtension(InputFilePath, ".dec.txt");
             }
         }
 
@@ -77,7 +88,7 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         {
             var dialog = new SaveFileDialog
             {
-                Filter = "Encrypted files (*.enc)|*.enc|All files (*.*)|*.*"
+                Filter = "All files (*.*)|*.*"
             };
             if (dialog.ShowDialog() == true)
             {
@@ -88,52 +99,71 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         private void GenerateKey()
         {
             (_key, _iv) = _aesService.GenerateKey();
-            if(_key != null && _iv != null)
-                MessageBox.Show("AES ključ i IV uspješno generirani!", "Uspjeh", MessageBoxButton.OK, MessageBoxImage.Information);
-
-            EncryptCommand.NotifyCanExecuteChanged();
-            DecryptCommand.NotifyCanExecuteChanged();
+            MessageBox.Show("AES ključ i IV uspješno generirani!", "Uspjeh", MessageBoxButton.OK, MessageBoxImage.Information);
+            RefreshCommands();
         }
 
-        private bool CanExecuteEncrypt() => 
-            !string.IsNullOrEmpty(InputFilePath) && 
-            _key != null && _iv != null;
-
-        private bool CanExecuteDecrypt() =>
-            !string.IsNullOrEmpty(InputFilePath) &&
-            !string.IsNullOrEmpty(OutputFilePath) &&
-            _key != null && _iv != null;
-
-        private void EncryptFile()
+        private void SaveKeyToFiles()
         {
             try
             {
-                var outputPath = Path.ChangeExtension(InputFilePath, ".enc");
-                _aesService.EncryptFile(InputFilePath, outputPath, _key, _iv);
-
-                MessageBox.Show($"Datoteka je uspješno enkriptirana!\nPutanja: {outputPath}",
-                                "Uspjeh", MessageBoxButton.OK, MessageBoxImage.Information);
+                File.WriteAllBytes("aes_key.bin", _key);
+                File.WriteAllBytes("aes_iv.bin", _iv);
+                MessageBox.Show("AES ključ i IV spremljeni!", "Uspjeh", MessageBoxButton.OK, MessageBoxImage.Information);
             } catch (Exception ex)
             {
-                MessageBox.Show($"Greška pri enkripciji: {ex.Message}",
-                                "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Greška pri spremanju ključa: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void DecryptFile()
+        private void LoadKeyFromFiles()
         {
             try
             {
-                _aesService.DecryptFile(InputFilePath, OutputFilePath, _key, _iv);
-                MessageBox.Show("Datoteka uspješno dekriptirana.", "AES Dekripcija", MessageBoxButton.OK, MessageBoxImage.Information);
+                _key = File.ReadAllBytes("aes_key.bin");
+                _iv = File.ReadAllBytes("aes_iv.bin");
+                MessageBox.Show("AES ključ i IV učitani!", "Uspjeh", MessageBoxButton.OK, MessageBoxImage.Information);
+                RefreshCommands();
             } catch (Exception ex)
             {
-                MessageBox.Show($"Greška pri dekripciji: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Greška pri učitavanju ključa: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private bool CanExecuteCrypto()
+        {
+            return !string.IsNullOrEmpty(InputFilePath)
+                   && !string.IsNullOrEmpty(OutputFilePath)
+                   && _key != null && _iv != null;
+        }
+
+        private void ExecuteCrypto()
+        {
+            try
+            {
+                if (IsEncryptMode)
+                {
+                    _aesService.EncryptFile(InputFilePath, OutputFilePath, _key, _iv);
+                    MessageBox.Show($"Datoteka enkriptirana!\nPutanja: {OutputFilePath}", "AES", MessageBoxButton.OK, MessageBoxImage.Information);
+                } else
+                {
+                    _aesService.DecryptFile(InputFilePath, OutputFilePath, _key, _iv);
+                    MessageBox.Show($"Datoteka dekriptirana!\nPutanja: {OutputFilePath}", "AES", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            } catch (Exception ex)
+            {
+                MessageBox.Show($"Greška: {ex.Message}", "AES", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void RefreshCommands()
+        {
+            ExecuteCryptoCommand.NotifyCanExecuteChanged();
+            SaveKeyCommand.NotifyCanExecuteChanged();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        private void OnPropertyChanged([CallerMemberName] string name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

@@ -1,36 +1,57 @@
 ﻿<Window x:Class="DigitalSignatureApp.WpfUI.Views.AesEncryptionView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DigitalSignatureApp.WpfUI.Views"
-        mc:Ignorable="d"
-        WindowStartupLocation="CenterScreen"
-        Title="AES Encryption / Decryption" Height="320" Width="520">
+        xmlns:conv="clr-namespace:DigitalSignatureApp.WpfUI.Converters"
+        Title="AES Enkripcija / Dekripcija" Height="420" Width="560"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <conv:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    </Window.Resources>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="AES Enkripcija i Dekripcija" FontWeight="Bold" FontSize="18" Margin="0,0,0,15" Grid.Row="0"/>
+        <TextBlock Text="AES Enkripcija i Dekripcija" FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,5">
-            <TextBox Width="340" Text="{Binding InputFilePath, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" />
-            <Button Content="Odaberi ulaznu datoteku" Command="{Binding SelectInputFileCommand}" Margin="10,0,0,0"/>
+        <!-- Mod prebacivanja -->
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,15">
+            <RadioButton Content="Enkripcija" IsChecked="{Binding IsEncryptMode}" Margin="0,0,15,0"/>
+            <RadioButton Content="Dekripcija" IsChecked="{Binding IsEncryptMode, Converter={StaticResource InverseBooleanConverter}}"/>
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,5">
-            <TextBox Width="340" Text="{Binding OutputFilePath, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" />
-            <Button Content="Odaberi izlaznu datoteku" Command="{Binding SelectOutputFileCommand}" Margin="10,0,0,0"/>
+        <!-- Datoteke -->
+        <StackPanel Grid.Row="2" Margin="0,10">
+            <TextBlock Text="Ulazna datoteka:" FontWeight="Bold"/>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBox Width="360" Text="{Binding InputFilePath}" IsReadOnly="True"/>
+                <Button Content="Odaberi" Command="{Binding SelectInputFileCommand}" Margin="10,0,0,0"/>
+            </StackPanel>
+
+            <TextBlock Text="Izlazna datoteka:" FontWeight="Bold" Margin="0,10,0,0"/>
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBox Width="360" Text="{Binding OutputFilePath}" IsReadOnly="True"/>
+                <Button Content="Odaberi" Command="{Binding SelectOutputFileCommand}" Margin="10,0,0,0"/>
+            </StackPanel>
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="3" HorizontalAlignment="Center" Margin="0,20,0,0">
-            <Button Content="Generiraj Ključ" Command="{Binding GenerateKeyCommand}" Width="140" Margin="5"/>
-            <Button Content="Enkriptiraj" Command="{Binding EncryptCommand}" Width="120" Margin="5"/>
-            <Button Content="Dekriptiraj" Command="{Binding DecryptCommand}" Width="120" Margin="5"/>
+        <!-- Upravljanje ključem -->
+        <GroupBox Header="AES Ključ i IV" Grid.Row="3" Margin="0,15,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
+                <Button Content="Generiraj ključ" Command="{Binding GenerateKeyCommand}" Width="140" Margin="5"/>
+                <Button Content="Spremi ključ" Command="{Binding SaveKeyCommand}" Width="140" Margin="5"/>
+                <Button Content="Učitaj ključ" Command="{Binding LoadKeyCommand}" Width="140" Margin="5"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Izvršavanje -->
+        <StackPanel Orientation="Horizontal" Grid.Row="4" HorizontalAlignment="Center" Margin="0,20,0,0">
+            <Button Content="Pokreni" Command="{Binding ExecuteCryptoCommand}" Width="200" Height="35" FontWeight="Bold"/>
         </StackPanel>
     </Grid>
 </Window>
