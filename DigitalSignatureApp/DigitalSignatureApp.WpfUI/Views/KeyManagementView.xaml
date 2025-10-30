@@ -6,29 +6,31 @@
         xmlns:vm="clr-namespace:DigitalSignatureApp.WpfUI.ViewModels"
         mc:Ignorable="d"
         Title="Upravljanje Kljucevima"
-        Height="320" Width="480"
+        Height="440" Width="480"
         ResizeMode="NoResize">
 
     <Window.DataContext>
         <vm:KeyManagementViewModel/>
     </Window.DataContext>
 
-    <StackPanel Margin="20" Orientation="Vertical" VerticalAlignment="Top" >
-        <TextBlock Text="Putanja do javnog ključa:"/>
-        <TextBox Text="{Binding PublicKeyPath}" Margin="0,5,0,10"/>
+    <StackPanel Margin="20" Orientation="Vertical" VerticalAlignment="Top">
 
-        <TextBlock Text="Putanja do privatnog ključa:"/>
-        <TextBox Text="{Binding PrivateKeyPath}" Margin="0,5,0,10"/>
+        <TextBlock Text="RSA Ključevi" FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
+
+        <TextBlock Text="Javni ključ:" FontWeight="SemiBold"/>
+        <TextBox Text="{Binding PublicKeyValue, Mode=OneWay}" 
+                 Height="100" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,5,0,10"/>
+
+        <TextBlock Text="Privatni ključ:" FontWeight="SemiBold"/>
+        <TextBox Text="{Binding PrivateKeyValue, Mode=OneWay}" 
+                 Height="100" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,5,0,10"/>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
-            <Button Content="Generiraj ključeve" Width="140" Command="{Binding GenerateKeysCommand}" Margin="5,0"/>
-            <Button Content="Spremi ključeve" Width="120" Command="{Binding SaveKeysCommand}" Margin="5,0"/>
-            <Button Content="Učitaj ključeve" Width="120" Command="{Binding LoadKeysCommand}" Margin="5,0"/>
+            <Button Content="Generiraj ključeve" Width="160" Command="{Binding GenerateKeysCommand}" Margin="5,0" Background="#0078D7" Foreground="White"/>
+            <Button Content="Spremi ključeve" Width="140" Command="{Binding SaveKeysCommand}" Margin="5,0" Background="#28A745" Foreground="White"/>
+            <Button Content="Učitaj ključeve" Width="140" Command="{Binding LoadKeysCommand}" Margin="5,0" Background="#6C757D" Foreground="White"/>
         </StackPanel>
 
-        <TextBlock Text="{Binding StatusMessage}" 
-               Foreground="SteelBlue" 
-               TextWrapping="Wrap" 
-               Margin="0,15,0,0"/>
+        <TextBlock Text="{Binding StatusMessage}" Foreground="SteelBlue" FontStyle="Italic" TextWrapping="Wrap" Margin="0,15,0,0"/>
     </StackPanel>
 </Window>

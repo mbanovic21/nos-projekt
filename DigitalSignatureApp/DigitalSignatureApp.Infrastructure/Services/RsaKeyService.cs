@@ -23,8 +23,10 @@ namespace DigitalSignatureApp.Infrastructure.Services
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "DigitalSignatureApp", "keys");
 
-            publicKeyPath = Path.Combine(keysFolder, "public_key.txt");
-            privateKeyPath = Path.Combine(keysFolder, "private_key.txt");
+            Directory.CreateDirectory(keysFolder);
+
+            publicKeyPath = Path.Combine(keysFolder, "javni_kljuc.txt");
+            privateKeyPath = Path.Combine(keysFolder, "privatni_kljuc.txt");
         }
 
         public KeyPair GenerateKeyPair(int keySize = 2048)
@@ -33,6 +35,8 @@ namespace DigitalSignatureApp.Infrastructure.Services
             
             var publicKeyValue = Convert.ToBase64String(rsa.ExportSubjectPublicKeyInfo());
             IKey publicKey = new PublicKey(publicKeyValue);
+            Console.WriteLine("Generated Public Key: " + publicKeyValue);
+            Console.WriteLine("Generated Public Key Path" + publicKey.KeyPath);
 
             var privateKeyValue = Convert.ToBase64String(rsa.ExportPkcs8PrivateKey());
             IKey privateKey = new PrivateKey(privateKeyValue);
@@ -40,36 +44,36 @@ namespace DigitalSignatureApp.Infrastructure.Services
             return new KeyPair(publicKey, privateKey);
         }
 
-        public KeyPair LoadKeysFromFiles(string publicKeyPath, string privateKeyPath)
-        {
-            if (!File.Exists(publicKeyPath) || !File.Exists(privateKeyPath))
-                throw new FileNotFoundException("Jedna ili obje datoteke ključeva ne postoje.");
-
-            var publicKeyValue = File.ReadAllText(publicKeyPath);
-            var publicKey = new PublicKey(publicKeyValue)
-            {
-                KeyPath = publicKeyPath
-            };
-
-            var privateKeyValue = File.ReadAllText(privateKeyPath);
-
-            var privateKey = new PrivateKey(privateKeyValue)
-            {
-                KeyPath = privateKeyPath
-            };
-
-            return new KeyPair(publicKey, privateKey);
-        }
-
         public void SaveKeysToFiles(KeyPair keyPair)
         {
-            Directory.CreateDirectory(keysFolder);
-
             File.WriteAllText(publicKeyPath, keyPair.PublicKey.KeyValue);
             File.WriteAllText(privateKeyPath, keyPair.PrivateKey.KeyValue);
 
             keyPair.PublicKey.KeyPath = publicKeyPath;
             keyPair.PrivateKey.KeyPath = privateKeyPath;
+        }
+
+        public KeyPair LoadKeysFromFiles()
+        {
+            return LoadKeysFromFiles(publicKeyPath, privateKeyPath);
+        }
+
+        private KeyPair LoadKeysFromFiles(string publicKeyPath, string privateKeyPath)
+        {
+            if (!File.Exists(publicKeyPath) || !File.Exists(privateKeyPath))
+            {
+                var newKeys = GenerateKeyPair();
+                SaveKeysToFiles(newKeys);
+                return newKeys;
+            }
+
+            var publicKeyValue = File.ReadAllText(publicKeyPath);
+            var privateKeyValue = File.ReadAllText(privateKeyPath);
+
+            var publicKey = new PublicKey(publicKeyValue) { KeyPath = publicKeyPath };
+            var privateKey = new PrivateKey(privateKeyValue) { KeyPath = privateKeyPath };
+
+            return new KeyPair(publicKey, privateKey);
         }
     }
 }

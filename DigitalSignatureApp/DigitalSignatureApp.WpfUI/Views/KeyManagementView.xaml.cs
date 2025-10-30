@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DigitalSignatureApp.WpfUI.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,7 @@ namespace DigitalSignatureApp.WpfUI.Views
         public KeyManagementView()
         {
             InitializeComponent();
+            DataContext = new KeyManagementViewModel();
         }
     }
 }

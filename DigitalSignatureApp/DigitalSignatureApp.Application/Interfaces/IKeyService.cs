@@ -11,6 +11,6 @@ namespace DigitalSignatureApp.Application.Interfaces
     {
         KeyPair GenerateKeyPair(int keySize = 2048);
         void SaveKeysToFiles(KeyPair keyPair);
-        KeyPair LoadKeysFromFiles(string publicKeyPath, string privateKeyPath);
+        KeyPair LoadKeysFromFiles();
     }
 }
