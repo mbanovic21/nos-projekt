@@ -1,5 +1,6 @@
 ﻿using DigitalSignatureApp.Application.Interfaces;
 using DigitalSignatureApp.Domain.Entities;
+using DigitalSignatureApp.Domain.Enums;
 using DigitalSignatureApp.Domain.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -12,46 +13,63 @@ namespace DigitalSignatureApp.Infrastructure.Services
 {
     public class RsaKeyService : IKeyService
     {
+        private readonly string keysFolder;
+        private readonly string publicKeyPath;
+        private readonly string privateKeyPath;
+
+        public RsaKeyService()
+        {
+            keysFolder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "DigitalSignatureApp", "keys");
+
+            publicKeyPath = Path.Combine(keysFolder, "public_key.txt");
+            privateKeyPath = Path.Combine(keysFolder, "private_key.txt");
+        }
+
         public KeyPair GenerateKeyPair(int keySize = 2048)
         {
             using var rsa = RSA.Create(keySize);
+            
+            var publicKeyValue = Convert.ToBase64String(rsa.ExportSubjectPublicKeyInfo());
+            IKey publicKey = new PublicKey(publicKeyValue);
 
-            IKey publicKey = new PublicKey
-            {
-                KeyValue = Convert.ToBase64String(rsa.ExportSubjectPublicKeyInfo()),
-                CreatedAt = DateTime.UtcNow
-            };
-
-            IKey privateKey = new PrivateKey
-            {
-                KeyValue = Convert.ToBase64String(rsa.ExportPkcs8PrivateKey()),
-                CreatedAt = DateTime.UtcNow
-            };
+            var privateKeyValue = Convert.ToBase64String(rsa.ExportPkcs8PrivateKey());
+            IKey privateKey = new PrivateKey(privateKeyValue);
 
             return new KeyPair(publicKey, privateKey);
         }
 
         public KeyPair LoadKeysFromFiles(string publicKeyPath, string privateKeyPath)
         {
-            var pub = new PublicKey
+            if (!File.Exists(publicKeyPath) || !File.Exists(privateKeyPath))
+                throw new FileNotFoundException("Jedna ili obje datoteke ključeva ne postoje.");
+
+            var publicKeyValue = File.ReadAllText(publicKeyPath);
+            var publicKey = new PublicKey(publicKeyValue)
             {
-                KeyPath = publicKeyPath,
-                KeyValue = File.ReadAllText(publicKeyPath)
+                KeyPath = publicKeyPath
             };
 
-            var priv = new PrivateKey
+            var privateKeyValue = File.ReadAllText(privateKeyPath);
+
+            var privateKey = new PrivateKey(privateKeyValue)
             {
-                KeyPath = privateKeyPath,
-                KeyValue = File.ReadAllText(privateKeyPath)
+                KeyPath = privateKeyPath
             };
 
-            return new KeyPair(pub, priv);
+            return new KeyPair(publicKey, privateKey);
         }
 
-        public void SaveKeysToFiles(KeyPair keyPair, string publicKeyPath, string privateKeyPath)
+        public void SaveKeysToFiles(KeyPair keyPair)
         {
+            Directory.CreateDirectory(keysFolder);
+
             File.WriteAllText(publicKeyPath, keyPair.PublicKey.KeyValue);
             File.WriteAllText(privateKeyPath, keyPair.PrivateKey.KeyValue);
+
+            keyPair.PublicKey.KeyPath = publicKeyPath;
+            keyPair.PrivateKey.KeyPath = privateKeyPath;
         }
     }
 }

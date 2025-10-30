@@ -8,9 +8,11 @@ namespace DigitalSignatureApp.Domain.Entities
 {
     public class PublicKey : Key
     {
-        public PublicKey() : base() { }
-        public PublicKey(string path, string value) : base(path, value) 
+        public PublicKey(string value) : base(value) 
         {
+            KeyPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "DigitalSignatureApp", "keys", "privatni_kljuc.txt");
             KeyType = Enums.KeyType.PublicKey;
         }
     }

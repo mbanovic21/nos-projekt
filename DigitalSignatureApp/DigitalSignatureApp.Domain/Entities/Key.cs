@@ -17,12 +17,9 @@ namespace DigitalSignatureApp.Domain.Entities
         public DateTime? ExpiresAt { get; set; }
         public KeyType KeyType { get; set; }
 
-        public Key() { }
-
-        public Key(string path, string value)
+        public Key(string value)
         {
             Id = Guid.NewGuid().GetHashCode();
-            KeyPath = path;
             KeyValue = value;
             CreatedAt = DateTime.UtcNow;
         }
