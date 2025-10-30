@@ -9,10 +9,9 @@ namespace DigitalSignatureApp.Domain.Entities
 {
     public class KeyPair
     {
-        public IKey PublicKey { get; set; } = new PublicKey();
-        public IKey PrivateKey { get; set; } = new PrivateKey();
+        public IKey PublicKey { get; set; }
+        public IKey PrivateKey { get; set; }
 
-        public KeyPair() { }
         public KeyPair(IKey publicKey, IKey privateKey)
         {
             PublicKey = publicKey;

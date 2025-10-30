@@ -10,7 +10,7 @@ namespace DigitalSignatureApp.Application.Interfaces
     public interface IKeyService
     {
         KeyPair GenerateKeyPair(int keySize = 2048);
-        void SaveKeysToFiles(KeyPair keyPair, string publicKeyPath, string privateKeyPath);
+        void SaveKeysToFiles(KeyPair keyPair);
         KeyPair LoadKeysFromFiles(string publicKeyPath, string privateKeyPath);
     }
 }
