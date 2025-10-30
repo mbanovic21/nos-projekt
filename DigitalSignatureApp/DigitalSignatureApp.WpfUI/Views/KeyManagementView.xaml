@@ -6,7 +6,7 @@
         xmlns:vm="clr-namespace:DigitalSignatureApp.WpfUI.ViewModels"
         mc:Ignorable="d"
         Title="Upravljanje Kljucevima"
-        Height="440" Width="480"
+        Height="460" Width="480"
         ResizeMode="NoResize">
 
     <Window.DataContext>
