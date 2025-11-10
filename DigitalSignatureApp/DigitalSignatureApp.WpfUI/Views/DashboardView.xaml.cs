@@ -1,5 +1,4 @@
-﻿using DigitalSignatureApp.WpfUI.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,20 +10,18 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace DigitalSignatureApp.WpfUI.Views
 {
     /// <summary>
-    /// Interaction logic for AesEncryptionView.xaml
+    /// Interaction logic for DashboardView.xaml
     /// </summary>
-    public partial class AesEncryptionView : UserControl
+    public partial class DashboardView : Window
     {
-        public AesEncryptionView()
+        public DashboardView()
         {
             InitializeComponent();
-            DataContext = new AesEncryptionViewModel();
         }
     }
 }

@@ -1,0 +1,50 @@
+﻿<Window x:Class="DigitalSignatureApp.WpfUI.Views.DashboardView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:DigitalSignatureApp.WpfUI.ViewModels"
+        Title="Crypto Dashboard"
+        WindowStartupLocation="CenterScreen"
+        Width="900" Height="600"
+        Background="#f4f6f9">
+
+    <Window.DataContext>
+        <vm:DashboardViewModel />
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <StackPanel Background="#2D2F3A" Width="220" VerticalAlignment="Stretch">
+            <TextBlock Text="Crypto Tools"
+                       Foreground="White"
+                       FontWeight="Bold"
+                       FontSize="22"
+                       Margin="20,30,0,20"/>
+
+            <Button Content="🔐 AES Enkripcija"
+                    Style="{StaticResource MenuButtonStyle}"
+                    Command="{Binding ShowAesCommand}"/>
+
+            <Button Content="🔑 RSA Ključevi"
+                    Style="{StaticResource MenuButtonStyle}"
+                    Command="{Binding ShowRsaCommand}"/>
+
+            <Button Content="🧮 Sažetak (Hash)"
+                    Style="{StaticResource MenuButtonStyle}"
+                    Command="{Binding ShowHashCommand}"/>
+
+            <Button Content="✍️ Digitalni potpis"
+                    Style="{StaticResource MenuButtonStyle}"
+                    Command="{Binding ShowSignatureCommand}"/>
+        </StackPanel>
+
+        <!-- Glavni sadržaj -->
+        <ContentControl Grid.Column="1"
+                        Content="{Binding CurrentView}"
+                        Margin="10"/>
+    </Grid>
+</Window>

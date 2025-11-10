@@ -17,14 +17,14 @@ using System.Windows.Shapes;
 namespace DigitalSignatureApp.WpfUI.Views
 {
     /// <summary>
-    /// Interaction logic for AesEncryptionView.xaml
+    /// Interaction logic for SignatureView.xaml
     /// </summary>
-    public partial class AesEncryptionView : UserControl
+    public partial class SignatureView : UserControl
     {
-        public AesEncryptionView()
+        public SignatureView()
         {
             InitializeComponent();
-            DataContext = new AesEncryptionViewModel();
+            DataContext = new SignatureViewModel();
         }
     }
 }

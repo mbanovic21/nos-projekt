@@ -1,0 +1,77 @@
+﻿<UserControl x:Class="DigitalSignatureApp.WpfUI.Views.HashView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="500" d:DesignWidth="800">
+
+    <Grid Margin="10">
+        <!-- Grid definira lijevi panel i desni log -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <!-- Glavni panel -->
+            <ColumnDefinition Width="1*"/>
+            <!-- Log panel -->
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Naslov -->
+            <RowDefinition Height="*"/>
+            <!-- Main content -->
+            <RowDefinition Height="Auto"/>
+            <!-- Footer -->
+        </Grid.RowDefinitions>
+
+        <!-- Naslov -->
+        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                   Text="📝 SHA-256 Hash (prezentacijski prikaz)"
+                   FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
+
+        <!-- Lijevi panel: SHA-256 -->
+        <GroupBox Header="Hash" Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <!-- Odabrana datoteka -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Button odabir -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Label hash -->
+                    <RowDefinition Height="*"/>
+                    <!-- Hash TextBox rastezljiv -->
+                </Grid.RowDefinitions>
+
+                <!-- Odabrana datoteka -->
+                <TextBlock Grid.Row="0" Text="Odabrana datoteka:" FontWeight="SemiBold" Margin="0,0,0,3"/>
+                <TextBox Grid.Row="0" Text="{Binding InputFilePath}" IsReadOnly="True" TextWrapping="Wrap" Margin="0,20,0,0"/>
+
+                <!-- Odaberi datoteku gumb -->
+                <Button Grid.Row="1" Content="Odaberi datoteku" Command="{Binding SelectInputFileCommand}" Width="120" Height="30" Margin="0,5,0,12"/>
+
+                <!-- SHA-256 Label -->
+                <TextBlock Grid.Row="2" Text="SHA-256 hash:" FontWeight="SemiBold" Margin="0,0,0,3"/>
+
+                <!-- Hash TextBox (responzivan) -->
+                <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <TextBox Text="{Binding HashValue}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
+                             VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+                </ScrollViewer>
+            </Grid>
+        </GroupBox>
+
+        <!-- Desni panel: Log -->
+        <GroupBox Header="Log" Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Padding="5">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <TextBox Text="{Binding Log}" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+            </ScrollViewer>
+        </GroupBox>
+
+        <!-- Footer gumb -->
+        <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+            <Button Content="Izračunaj hash" Command="{Binding ComputeHashCommand}" Width="120" Height="30" Margin="5"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

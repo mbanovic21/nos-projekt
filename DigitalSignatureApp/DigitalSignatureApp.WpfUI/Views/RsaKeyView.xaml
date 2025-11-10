@@ -1,0 +1,73 @@
+﻿<UserControl x:Class="DigitalSignatureApp.WpfUI.Views.RsaKeyView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="500" d:DesignWidth="800">
+
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <!-- Keys panel -->
+            <ColumnDefinition Width="1*"/>
+            <!-- Log panel -->
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!--Title-->
+            <RowDefinition Height="*"/>
+            <!-- Main content -->
+            <RowDefinition Height="Auto"/>
+            <!-- Footer buttons -->
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+               Text="🗝️ RSA Ključevi (prezentacijski prikaz)" 
+               FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
+        
+        <!-- Keys panel -->
+        <GroupBox Header="Ključevi" Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <!-- Public Key -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Kopiraj Public -->
+                    <RowDefinition Height="*"/>
+                    <!-- Private Key -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Kopiraj Private -->
+                </Grid.RowDefinitions>
+
+                <!-- Public key -->
+                <TextBlock Text="Javni ključ:" FontWeight="SemiBold" Margin="0,0,0,3" Grid.Row="0"/>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="0" Margin="0,20,0,0">
+                    <TextBox Text="{Binding PublicKeyText}" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                </ScrollViewer>
+                <Button Content="Kopiraj javni ključ" Command="{Binding CopyPublicKeyCommand}" Width="150" Height="30" Margin="0,5,0,10" Grid.Row="1" HorizontalAlignment="Left"/>
+
+                <!-- Private key -->
+                <TextBlock Text="Privatni ključ:" FontWeight="SemiBold" Margin="0,10,0,3" Grid.Row="2"/>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="2" Margin="0,30,0,0">
+                    <TextBox Text="{Binding PrivateKeyText}" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                </ScrollViewer>
+                <Button Content="Kopiraj privatni ključ" Command="{Binding CopyPrivateKeyCommand}" Width="150" Height="30" Margin="0,5,0,0" Grid.Row="3" HorizontalAlignment="Left"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Log panel -->
+        <GroupBox Header="Log" FontSize="14" Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Padding="5">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <TextBox Text="{Binding Log}" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+            </ScrollViewer>
+        </GroupBox>
+
+        <!-- Footer buttons -->
+        <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,10,0">
+            <Button Content="Generiraj ključeve" Command="{Binding GenerateKeysCommand}" Width="150" Height="35" Margin="5"/>
+            <Button Content="Spremi ključeve" Command="{Binding SaveKeysCommand}" Width="120" Height="35" Margin="5"/>
+            <Button Content="Učitaj ključeve" Command="{Binding LoadKeysCommand}" Width="120" Height="35" Margin="5"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

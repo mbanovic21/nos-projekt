@@ -11,19 +11,20 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace DigitalSignatureApp.WpfUI.Views
 {
     /// <summary>
-    /// Interaction logic for KeyManagementView.xaml
+    /// Interaction logic for HashView.xaml
     /// </summary>
-    public partial class KeyManagementView : Window
+    public partial class HashView : UserControl
     {
-        public KeyManagementView()
+        public HashView()
         {
             InitializeComponent();
-            DataContext = new KeyManagementViewModel();
+            DataContext = new HashViewModel();
         }
     }
 }
