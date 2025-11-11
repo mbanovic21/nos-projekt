@@ -19,7 +19,7 @@
 
         <!-- Naslov -->
         <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                   Text="🖋️ Digitalni potpis (prezentacijski prikaz)"
+                   Text="🖋️ Digitalni potpis"
                    FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
 
         <!-- Lijevi panel: Digitalni potpis -->
@@ -47,10 +47,10 @@
                 <TextBlock Grid.Row="2" Text="Vrijednost potpisa:" FontWeight="SemiBold" Margin="0,0,0,3"/>
 
                 <!-- Signature TextBox (responzivan) -->
-                <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
                     <TextBox Text="{Binding SignatureValue}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
                      VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+                     VerticalScrollBarVisibility="Auto"/>
                 </ScrollViewer>
             </Grid>
         </GroupBox>

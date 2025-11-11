@@ -23,7 +23,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-               Text="🗝️ RSA Ključevi (prezentacijski prikaz)" 
+               Text="🗝️ RSA Ključevi" 
                FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
         
         <!-- Keys panel -->

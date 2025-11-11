@@ -1,10 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DigitalSignatureApp.Domain.Interfaces;
+using DigitalSignatureApp.Infrastructure.Services;
 using Microsoft.Win32;
 using System;
 using System.IO;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -12,9 +12,17 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
 {
     public partial class HashViewModel : ObservableObject
     {
+        private readonly IHashService _hashService;
+
         [ObservableProperty] private string inputFilePath = string.Empty;
         [ObservableProperty] private string hashValue = string.Empty;
         [ObservableProperty] private string log = string.Empty;
+
+        public HashViewModel()
+        {
+            _hashService = new HashService(); // moze se i injectati
+            AppendLog("Hash module initialized.");
+        }
 
         [RelayCommand]
         private void SelectInputFile()
@@ -43,7 +51,7 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
 
             try
             {
-                HashValue = await Task.Run(() => ComputeSha256(InputFilePath));
+                HashValue = await _hashService.ComputeHashAsync(InputFilePath);
                 var duration = DateTime.Now - start;
                 AppendLog($"SHA-256 hash izračunat: {HashValue} (Trajanje: {duration.TotalMilliseconds} ms)");
 
@@ -53,9 +61,6 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
                 AppendLog($"Greška pri izračunu hash-a: {ex.Message}");
             }
         }
-
-        private bool CanComputeHash() => !string.IsNullOrEmpty(InputFilePath) && File.Exists(InputFilePath);
-        private bool CanCopyHash() => !string.IsNullOrEmpty(HashValue);
 
         [RelayCommand(CanExecute = nameof(CanCopyHash))]
         private void CopyHash()
@@ -70,12 +75,28 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             }
         }
 
-        private string ComputeSha256(string filePath)
+        private bool CanComputeHash() => !string.IsNullOrEmpty(InputFilePath) && File.Exists(InputFilePath);
+        private bool CanCopyHash() => !string.IsNullOrEmpty(HashValue);
+
+        [RelayCommand]
+        private async Task SaveHashToFileAsync()
         {
-            using var sha256 = SHA256.Create();
-            using var stream = File.OpenRead(filePath);
-            var hash = sha256.ComputeHash(stream);
-            return BitConverter.ToString(hash).Replace("-", "");
+            if (!File.Exists(InputFilePath))
+            {
+                MessageBox.Show("Odabrana datoteka ne postoji.", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var hashFilePath = Path.ChangeExtension(InputFilePath, ".hash");
+
+            try
+            {
+                await _hashService.SaveHashToFileAsync(InputFilePath, hashFilePath);
+                AppendLog($"Hash spremljen u datoteku: {hashFilePath}");
+            } catch (Exception ex)
+            {
+                AppendLog($"Greška pri spremanju hash-a: {ex.Message}");
+            }
         }
 
         private void AppendLog(string message)

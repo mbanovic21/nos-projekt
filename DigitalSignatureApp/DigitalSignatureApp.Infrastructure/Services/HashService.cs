@@ -1,27 +1,31 @@
 ﻿using DigitalSignatureApp.Domain.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DigitalSignatureApp.Infrastructure.Services
 {
     public class HashService : IHashService
     {
-        public byte[] ComputeHash(string filePath)
+        public async Task<string> ComputeHashAsync(string filePath)
         {
-            using var sha = SHA256.Create();
-            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            return sha.ComputeHash(fs);
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException("Datoteka ne postoji.", filePath);
+
+            return await Task.Run(() =>
+            {
+                using var sha = SHA256.Create();
+                using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+                var hash = sha.ComputeHash(fs);
+                return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+            });
         }
 
-        public void SaveHashToFile(string filePath, string hashFilePath)
+        public async Task SaveHashToFileAsync(string filePath, string hashFilePath)
         {
-            var hash = ComputeHash(filePath);
-            var hex = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-            File.WriteAllText(hashFilePath, hex);
+            var hash = await ComputeHashAsync(filePath);
+            await File.WriteAllTextAsync(hashFilePath, hash);
         }
     }
 }

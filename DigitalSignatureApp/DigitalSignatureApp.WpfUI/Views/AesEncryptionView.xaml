@@ -18,7 +18,7 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-            <TextBlock Text="🔒 AES Enkripcija (prezentacijski prikaz)" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
+            <TextBlock Text="🔒 AES Enkripcija" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
 
             <GroupBox Header="AES ključ i IV" Margin="0,0,0,10">
                 <StackPanel>

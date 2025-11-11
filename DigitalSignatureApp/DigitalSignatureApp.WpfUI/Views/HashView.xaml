@@ -26,7 +26,7 @@
 
         <!-- Naslov -->
         <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                   Text="📝 SHA-256 Hash (prezentacijski prikaz)"
+                   Text="📝 SHA-256 Hash"
                    FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
 
         <!-- Lijevi panel: SHA-256 -->
