@@ -24,6 +24,8 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             {
                 InputFilePath = dlg.FileName;
                 AppendLog($"Odabrana datoteka: {InputFilePath}");
+
+                ComputeHashCommand.NotifyCanExecuteChanged();
             }
         }
 
@@ -37,11 +39,15 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             }
 
             AppendLog($"Početak izračuna SHA-256 za: {InputFilePath}");
+            var start = DateTime.Now;
 
             try
             {
                 HashValue = await Task.Run(() => ComputeSha256(InputFilePath));
-                AppendLog($"SHA-256 hash izračunat: {HashValue}");
+                var duration = DateTime.Now - start;
+                AppendLog($"SHA-256 hash izračunat: {HashValue} (Trajanje: {duration.TotalMilliseconds} ms)");
+
+                CopyHashCommand.NotifyCanExecuteChanged();
             } catch (Exception ex)
             {
                 AppendLog($"Greška pri izračunu hash-a: {ex.Message}");
@@ -49,6 +55,20 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         }
 
         private bool CanComputeHash() => !string.IsNullOrEmpty(InputFilePath) && File.Exists(InputFilePath);
+        private bool CanCopyHash() => !string.IsNullOrEmpty(HashValue);
+
+        [RelayCommand(CanExecute = nameof(CanCopyHash))]
+        private void CopyHash()
+        {
+            try
+            {
+                Clipboard.SetText(HashValue);
+                AppendLog("Hash kopiran u clipboard.");
+            } catch (Exception ex)
+            {
+                AppendLog($"Greška pri kopiranju hash-a: {ex.Message}");
+            }
+        }
 
         private string ComputeSha256(string filePath)
         {
