@@ -22,23 +22,45 @@
                    Text="🖋️ Digitalni potpis (prezentacijski prikaz)"
                    FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
 
-        <!-- Glavni panel -->
-        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Vertical" Margin="0,0,10,0">
-            <TextBlock Text="Odabrana datoteka:" FontWeight="SemiBold" Margin="0,0,0,3"/>
-            <TextBox Text="{Binding InputFilePath}" IsReadOnly="True" TextWrapping="Wrap"/>
-            <Button Content="Odaberi datoteku" Command="{Binding SelectInputFileCommand}" Width="150" Height="35" Margin="0,5,0,12"/>
+        <!-- Lijevi panel: Digitalni potpis -->
+        <GroupBox Header="Digitalni potpis" Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <!-- Odabrana datoteka -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Button odabir -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Label potpis -->
+                    <RowDefinition Height="*"/>
+                    <!-- Signature TextBox rastezljiv -->
+                </Grid.RowDefinitions>
 
-            <TextBlock Text="Digitalni potpis:" FontWeight="SemiBold" Margin="0,0,0,3"/>
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <TextBox Text="{Binding SignatureValue}" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
-            </ScrollViewer>
-        </StackPanel>
+                <!-- Odabrana datoteka -->
+                <TextBlock Grid.Row="0" Text="Odabrana datoteka:" FontWeight="SemiBold" Margin="0,0,0,3"/>
+                <TextBox Grid.Row="0" Text="{Binding InputFilePath}" IsReadOnly="True" TextWrapping="Wrap" Margin="0,20,0,0"/>
+
+                <!-- Odaberi datoteku gumb -->
+                <Button Grid.Row="1" Content="Odaberi datoteku" Command="{Binding SelectInputFileCommand}" Width="150" Height="30" Margin="0,5,0,12"/>
+
+                <!-- Label Digitalni potpis -->
+                <TextBlock Grid.Row="2" Text="Vrijednost potpisa:" FontWeight="SemiBold" Margin="0,0,0,3"/>
+
+                <!-- Signature TextBox (responzivan) -->
+                <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <TextBox Text="{Binding SignatureValue}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
+                     VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+                </ScrollViewer>
+            </Grid>
+        </GroupBox>
 
         <!-- Log panel -->
-        <GroupBox Header="Log" FontSize="14" Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Padding="5">
+        <GroupBox Header="Log" Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Padding="5">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <TextBox Text="{Binding Log}" IsReadOnly="True" TextWrapping="Wrap"
-                         VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+                <TextBox Text="{Binding Log}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
+                             VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
             </ScrollViewer>
         </GroupBox>
 

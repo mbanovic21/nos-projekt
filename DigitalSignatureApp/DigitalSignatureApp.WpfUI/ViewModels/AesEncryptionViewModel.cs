@@ -14,7 +14,6 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
     {
         private readonly IAesService _aesService;
 
-        // UI-bindable properties
         [ObservableProperty] private string inputFilePath = string.Empty;
         [ObservableProperty] private string outputFilePath = string.Empty;
         [ObservableProperty] private string statusMessage = string.Empty;
@@ -28,7 +27,6 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         private byte[] _key;
         private byte[] _iv;
 
-        // Paths for saving keys (AppData)
         private readonly string _keysFolder;
         private readonly string _keyFilePath;
         private readonly string _ivFilePath;
@@ -43,7 +41,6 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             _keyFilePath = Path.Combine(_keysFolder, "aes_key.bin");
             _ivFilePath = Path.Combine(_keysFolder, "aes_iv.bin");
 
-            // Initialize log
             AppendLog("AES module initialized.");
         }
 
@@ -56,13 +53,30 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             if (dlg.ShowDialog() == true)
             {
                 InputFilePath = dlg.FileName;
-                AppendLog($"Selected input file: {InputFilePath}");
-                // set default output if empty
-                if (string.IsNullOrEmpty(OutputFilePath))
-                    OutputFilePath = Path.ChangeExtension(InputFilePath, ".enc");
+                AppendLog($"Odabrana ulazna datoteka: {InputFilePath}");
+
+                string ext = Path.GetExtension(InputFilePath)?.ToLower() ?? "";
+                string outputFolder = Path.GetDirectoryName(InputFilePath)!;
+                string baseName = Path.GetFileNameWithoutExtension(InputFilePath);
+
+                if (ext == ".enc")
+                {
+                    string originalExtension = Path.GetExtension(baseName);
+                    string cleanBaseName = Path.GetFileNameWithoutExtension(baseName);
+                    string newExtension = string.IsNullOrEmpty(originalExtension) ? ".bin" : originalExtension;
+
+                    OutputFilePath = Path.Combine(outputFolder, $"{cleanBaseName}_decrypted{newExtension}");
+                    AppendLog($"Automatski postavljena izlazna datoteka (za dekripciju): {OutputFilePath}");
+                } else
+                {
+                    OutputFilePath = InputFilePath + ".enc";
+                    AppendLog($"Automatski postavljena izlazna datoteka (za enkripciju): {OutputFilePath}");
+                }
+
                 UpdateCanExecute();
             }
         }
+
 
         [RelayCommand]
         private void SelectOutputFile()
@@ -164,7 +178,7 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
                     return;
                 }
 
-                var output = string.IsNullOrEmpty(OutputFilePath) ? Path.ChangeExtension(InputFilePath, ".enc") : OutputFilePath;
+                var output = string.IsNullOrEmpty(OutputFilePath) ? InputFilePath + ".enc" : OutputFilePath;
                 _aesService.EncryptFile(InputFilePath, output, _key, _iv);
 
                 StatusMessage = $"Datoteka enkriptirana -> {output}";
@@ -181,7 +195,7 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             !string.IsNullOrEmpty(InputFilePath) &&
             File.Exists(InputFilePath) &&
             _key != null && _iv != null;
-
+       
         [RelayCommand(CanExecute = nameof(CanDecrypt))]
         private void DecryptFile()
         {
@@ -189,17 +203,17 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             {
                 if (string.IsNullOrEmpty(InputFilePath) || !File.Exists(InputFilePath))
                 {
-                    StatusMessage = "Ulazna datoteka (kriptirani) ne postoji.";
+                    StatusMessage = "Ulazna datoteka (kriptirana) ne postoji.";
                     AppendLog(StatusMessage);
                     return;
                 }
 
-                var output = string.IsNullOrEmpty(OutputFilePath) ? Path.ChangeExtension(InputFilePath, ".dec") : OutputFilePath;
-                _aesService.DecryptFile(InputFilePath, output, _key, _iv);
+                string outputFolder = Path.GetDirectoryName(InputFilePath)!;
 
-                StatusMessage = $"Datoteka dekriptirana -> {output}";
-                AppendLog($"Decrypt: {InputFilePath} -> {output}");
-                AppendLog($"Output size: {new FileInfo(output).Length} bytes");
+                string outputPath = _aesService.DecryptFile(InputFilePath, outputFolder, _key, _iv);
+
+                StatusMessage = $"Datoteka dekriptirana i spremljena u: {outputPath}";
+                AppendLog($"Decrypt: {InputFilePath} -> {outputPath}");
             } catch (Exception ex)
             {
                 StatusMessage = $"Greška pri dekripciji: {ex.Message}";
@@ -212,19 +226,17 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             File.Exists(InputFilePath) &&
             _key != null && _iv != null;
 
-        // Toggle display between Base64 and Hex (bound to UI checkbox)
         partial void OnShowHexChanged(bool value)
         {
-            // when toggled, update status (UI bound properties already set)
             AppendLog($"ShowHex set to: {value}");
         }
 
         // Helper methods
         private void UpdateCanExecute()
         {
-            (EncryptFileCommand as IRelayCommand)?.NotifyCanExecuteChanged();
-            (DecryptFileCommand as IRelayCommand)?.NotifyCanExecuteChanged();
-            (SaveKeyFilesCommand as IRelayCommand)?.NotifyCanExecuteChanged();
+            (EncryptFileCommand)?.NotifyCanExecuteChanged();
+            (DecryptFileCommand)?.NotifyCanExecuteChanged();
+            (SaveKeyFilesCommand)?.NotifyCanExecuteChanged();
         }
 
         private void AppendLog(string message)

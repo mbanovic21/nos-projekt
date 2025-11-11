@@ -10,6 +10,6 @@ namespace DigitalSignatureApp.Application.Interfaces
     {
         (byte[] Key, byte[] IV) GenerateKey();
         void EncryptFile(string inputFilePath, string outputFilePath, byte[] key, byte[] iv);
-        void DecryptFile(string inputFilePath, string outputFilePath, byte[] key, byte[] iv);
+        string DecryptFile(string inputFilePath, string outputFolderPath, byte[] key, byte[] iv);
     }
 }
