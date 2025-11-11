@@ -9,6 +9,9 @@ namespace DigitalSignatureApp.Application.Interfaces
 {
     public interface IRsaKeyService
     {
+        string PublicKeyPath { get; }
+        string PrivateKeyPath { get; }
+
         KeyPair GenerateKeyPair(int keySize = 2048);
         void SaveKeysToFiles(KeyPair keyPair);
         KeyPair LoadKeysFromFiles();
