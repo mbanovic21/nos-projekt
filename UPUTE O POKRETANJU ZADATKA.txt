@@ -1,0 +1,15 @@
+U slučaju da izvršna dadoteka iz trenutnog direktorija ne radi, odradite sljedeće korake.
+
+Koraci za pokretanje izvršne datoteke
+1. DigitalSignatureApp
+2. DigitalSignatureApp.WpfUI
+3. bin
+4. Release
+5. bet8.0-windows
+6. DigitalSignatureApp.WpfUI
+-> trebali biste pokrenuti aplikaciju
+
+Koraci za pokretanje solution-a
+1. DigitalSignatureApp
+2. DigitalSignatureApp.sln
+-> trebali biste pokrenuti solution
