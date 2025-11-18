@@ -4,7 +4,8 @@
         xmlns:vm="clr-namespace:DigitalSignatureApp.WpfUI.ViewModels"
         Title="Crypto Dashboard"
         WindowStartupLocation="CenterScreen"
-        Width="1100" Height="680"
+        Icon="/crypto_icon.png"
+        Width="1130" Height="720"
         Background="#f4f6f9">
 
     <Window.DataContext>

@@ -19,32 +19,35 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         [ObservableProperty] private string log = string.Empty;
 
         public HashViewModel()
+            : this(new HashService())
         {
-            _hashService = new HashService(); // moze se i injectati
+        }
+
+        // omogućava DI ako zatreba
+        public HashViewModel(IHashService hashService)
+        {
+            _hashService = hashService ?? throw new ArgumentNullException(nameof(hashService));
             AppendLog("Hash module initialized.");
         }
+
+        // -------------------- Commands --------------------
 
         [RelayCommand]
         private void SelectInputFile()
         {
             var dlg = new OpenFileDialog();
-            if (dlg.ShowDialog() == true)
-            {
-                InputFilePath = dlg.FileName;
-                AppendLog($"Odabrana datoteka: {InputFilePath}");
+            if (dlg.ShowDialog() != true)
+                return;
 
-                ComputeHashCommand.NotifyCanExecuteChanged();
-            }
+            InputFilePath = dlg.FileName;
+            AppendLog($"Odabrana datoteka: {InputFilePath}");
         }
 
         [RelayCommand(CanExecute = nameof(CanComputeHash))]
         private async Task ComputeHashAsync()
         {
-            if (!File.Exists(InputFilePath))
-            {
-                MessageBox.Show("Odabrana datoteka ne postoji.", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (!EnsureInputFileExists())
                 return;
-            }
 
             AppendLog($"Početak izračuna SHA-256 za: {InputFilePath}");
             var start = DateTime.Now;
@@ -54,8 +57,6 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
                 HashValue = await _hashService.ComputeHashAsync(InputFilePath);
                 var duration = DateTime.Now - start;
                 AppendLog($"SHA-256 hash izračunat: {HashValue} (Trajanje: {duration.TotalMilliseconds} ms)");
-
-                CopyHashCommand.NotifyCanExecuteChanged();
             } catch (Exception ex)
             {
                 AppendLog($"Greška pri izračunu hash-a: {ex.Message}");
@@ -75,17 +76,11 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             }
         }
 
-        private bool CanComputeHash() => !string.IsNullOrEmpty(InputFilePath) && File.Exists(InputFilePath);
-        private bool CanCopyHash() => !string.IsNullOrEmpty(HashValue);
-
         [RelayCommand]
         private async Task SaveHashToFileAsync()
         {
-            if (!File.Exists(InputFilePath))
-            {
-                MessageBox.Show("Odabrana datoteka ne postoji.", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (!EnsureInputFileExists())
                 return;
-            }
 
             var hashFilePath = Path.ChangeExtension(InputFilePath, ".hash");
 
@@ -97,6 +92,46 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             {
                 AppendLog($"Greška pri spremanju hash-a: {ex.Message}");
             }
+        }
+
+        // -------------------- CanExecute --------------------
+
+        private bool CanComputeHash() =>
+            !string.IsNullOrWhiteSpace(InputFilePath) &&
+            File.Exists(InputFilePath);
+
+        private bool CanCopyHash() =>
+            !string.IsNullOrWhiteSpace(HashValue);
+
+        // -------------------- Observable callbacks --------------------
+
+        partial void OnInputFilePathChanged(string value)
+        {
+            UpdateCanExecute();
+        }
+
+        partial void OnHashValueChanged(string value)
+        {
+            UpdateCanExecute();
+        }
+
+        // -------------------- Helpers --------------------
+
+        private bool EnsureInputFileExists()
+        {
+            if (File.Exists(InputFilePath))
+                return true;
+
+            var message = "Odabrana datoteka ne postoji.";
+            MessageBox.Show(message, "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+            AppendLog(message);
+            return false;
+        }
+
+        private void UpdateCanExecute()
+        {
+            ComputeHashCommand?.NotifyCanExecuteChanged();
+            CopyHashCommand?.NotifyCanExecuteChanged();
         }
 
         private void AppendLog(string message)

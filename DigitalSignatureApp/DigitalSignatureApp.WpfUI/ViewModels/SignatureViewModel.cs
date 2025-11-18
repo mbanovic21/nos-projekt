@@ -19,31 +19,41 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         [ObservableProperty] private string signatureValue = string.Empty;
         [ObservableProperty] private string log = string.Empty;
 
+        private bool HasInputFile =>
+            !string.IsNullOrWhiteSpace(InputFilePath) &&
+            File.Exists(InputFilePath);
+
         public SignatureViewModel()
+            : this(new RsaKeyService(), new SignatureService())
         {
-            _rsaService = new RsaKeyService();
-            _signatureService = new SignatureService();
+        }
+
+        // DI-friendly konstruktor
+        public SignatureViewModel(IRsaKeyService rsaService, ISignatureService signatureService)
+        {
+            _rsaService = rsaService ?? throw new ArgumentNullException(nameof(rsaService));
+            _signatureService = signatureService ?? throw new ArgumentNullException(nameof(signatureService));
+
             AppendLog("Digital Signature module initialized.");
         }
+
+        // ---------------- Commands ----------------
 
         [RelayCommand]
         private void SelectInputFile()
         {
             var dlg = new OpenFileDialog();
-            if (dlg.ShowDialog() == true)
-            {
-                InputFilePath = dlg.FileName;
-                AppendLog($"Selected file: {InputFilePath}");
+            if (dlg.ShowDialog() != true)
+                return;
 
-                SignFileCommand.NotifyCanExecuteChanged();
-                VerifySignatureCommand.NotifyCanExecuteChanged();
-            }
+            InputFilePath = dlg.FileName;
+            AppendLog($"Selected file: {InputFilePath}");
         }
 
         [RelayCommand(CanExecute = nameof(CanSign))]
         private async Task SignFileAsync()
         {
-            if (!File.Exists(InputFilePath))
+            if (!EnsureInputFileExists())
                 return;
 
             await RunSafeAsync(async () =>
@@ -58,19 +68,17 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
 
                 SignatureValue = Convert.ToBase64String(signatureBytes);
 
-                var signatureFile = Path.ChangeExtension(InputFilePath, ".sig");
+                var signatureFile = GetSignatureFilePath();
                 await Task.Run(() => _signatureService.SaveSignatureToFile(signatureBytes, signatureFile));
 
                 AppendLog($"Signature saved: {signatureFile}");
-
-                VerifySignatureCommand.NotifyCanExecuteChanged();
             });
         }
 
         [RelayCommand(CanExecute = nameof(CanVerify))]
         private async Task VerifySignatureAsync()
         {
-            if (!File.Exists(InputFilePath))
+            if (!EnsureInputFileExists())
                 return;
 
             await RunSafeAsync(async () =>
@@ -78,7 +86,7 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
                 AppendLog($"Starting signature verification for {InputFilePath}");
 
                 var keyPair = await Task.Run(() => _rsaService.LoadKeysFromFiles());
-                var signatureFile = Path.ChangeExtension(InputFilePath, ".sig");
+                var signatureFile = GetSignatureFilePath();
 
                 if (!File.Exists(signatureFile))
                 {
@@ -86,7 +94,9 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
                     return;
                 }
 
-                var signatureBytes = await Task.Run(() => _signatureService.LoadSignatureFromFile(signatureFile));
+                var signatureBytes = await Task.Run(() =>
+                    _signatureService.LoadSignatureFromFile(signatureFile)
+                );
 
                 var verified = await Task.Run(() =>
                     _signatureService.VerifySignature(InputFilePath, signatureBytes, keyPair.PublicKey.KeyValue)
@@ -96,10 +106,41 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             });
         }
 
-        private bool CanSign() => !string.IsNullOrEmpty(InputFilePath) && File.Exists(InputFilePath);
-        private bool CanVerify() => !string.IsNullOrEmpty(InputFilePath)
-                                     && File.Exists(InputFilePath)
-                                     && File.Exists(Path.ChangeExtension(InputFilePath, ".sig"));
+        // ---------------- CanExecute ----------------
+
+        private bool CanSign() => HasInputFile;
+
+        private bool CanVerify() =>
+            HasInputFile &&
+            File.Exists(GetSignatureFilePath());
+
+        // ---------------- Observable callbacks ----------------
+
+        partial void OnInputFilePathChanged(string value) => UpdateCanExecute();
+
+        partial void OnSignatureValueChanged(string value) => UpdateCanExecute();
+
+        // ---------------- Helpers ----------------
+
+        private string GetSignatureFilePath() =>
+            string.IsNullOrWhiteSpace(InputFilePath)
+                ? string.Empty
+                : Path.ChangeExtension(InputFilePath, ".sig");
+
+        private bool EnsureInputFileExists()
+        {
+            if (HasInputFile)
+                return true;
+
+            AppendLog("Selected file does not exist.");
+            return false;
+        }
+
+        private void UpdateCanExecute()
+        {
+            SignFileCommand?.NotifyCanExecuteChanged();
+            VerifySignatureCommand?.NotifyCanExecuteChanged();
+        }
 
         private void AppendLog(string message)
         {

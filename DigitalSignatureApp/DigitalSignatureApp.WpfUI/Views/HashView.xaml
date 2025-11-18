@@ -45,7 +45,7 @@
 
                 <!-- Odabrana datoteka -->
                 <TextBlock Grid.Row="0" Text="Odabrana datoteka:" FontWeight="SemiBold" Margin="0,0,0,3"/>
-                <TextBox Grid.Row="0" Text="{Binding InputFilePath}" IsReadOnly="True" TextWrapping="Wrap" Margin="0,20,0,0"/>
+                <TextBox Grid.Row="0" Text="{Binding InputFilePath}" IsReadOnly="True" Height="30" TextWrapping="Wrap" Margin="0,20,0,0"/>
 
                 <!-- Odaberi datoteku gumb -->
                 <Button Grid.Row="1" Content="Odaberi datoteku" Command="{Binding SelectInputFileCommand}" Width="120" Height="30" Margin="0,5,0,12"/>
@@ -71,7 +71,7 @@
 
         <!-- Footer gumb -->
         <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
-            <Button Content="Izračunaj hash" Command="{Binding ComputeHashCommand}" Width="120" Height="30" Margin="5"/>
+            <Button Content="Izračunaj hash" Command="{Binding ComputeHashCommand}" Width="120" Height="35" Margin="5"/>
         </StackPanel>
     </Grid>
 </UserControl>

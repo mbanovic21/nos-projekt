@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using DigitalSignatureApp.Infrastructure.Services;
 using DigitalSignatureApp.Domain.Entities;
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using DigitalSignatureApp.Application.Interfaces;
@@ -20,10 +19,17 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         [ObservableProperty] private string log = string.Empty;
 
         private KeyPair _currentKeyPair;
+        private bool HasKeyPair => _currentKeyPair != null;
 
         public RsaKeyViewModel()
+            : this(new RsaKeyService())
         {
-            _rsaService = new RsaKeyService();
+        }
+
+        // omogućuje DI/testiranje
+        public RsaKeyViewModel(IRsaKeyService rsaService)
+        {
+            _rsaService = rsaService ?? throw new ArgumentNullException(nameof(rsaService));
             AppendLog("RSA module initialized.");
         }
 
@@ -34,16 +40,11 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         {
             try
             {
-                _currentKeyPair = _rsaService.GenerateKeyPair();
-                PublicKeyText = _currentKeyPair.PublicKey.KeyValue;
-                PrivateKeyText = _currentKeyPair.PrivateKey.KeyValue;
+                var keyPair = _rsaService.GenerateKeyPair();
+                SetKeyPair(keyPair);
 
                 StatusMessage = "RSA ključevi generirani.";
                 AppendLog("Generated RSA key pair.");
-
-                SaveKeysCommand.NotifyCanExecuteChanged();
-                CopyPublicKeyCommand.NotifyCanExecuteChanged();
-                CopyPrivateKeyCommand.NotifyCanExecuteChanged();
             } catch (Exception ex)
             {
                 StatusMessage = $"Greška pri generiranju ključeva: {ex.Message}";
@@ -56,50 +57,60 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         {
             await RunSafeAsync(async () =>
             {
+                if (!HasKeyPair)
+                    throw new InvalidOperationException("Nema generiranih/učitanih ključeva za spremanje.");
+
                 await Task.Run(() => _rsaService.SaveKeysToFiles(_currentKeyPair));
 
                 StatusMessage = "RSA ključevi spremljeni u AppData.";
                 AppendLog($"Saved public key -> {_rsaService.PublicKeyPath}");
                 AppendLog($"Saved private key -> {_rsaService.PrivateKeyPath}");
-
-                SaveKeysCommand.NotifyCanExecuteChanged();
-                CopyPublicKeyCommand.NotifyCanExecuteChanged();
-                CopyPrivateKeyCommand.NotifyCanExecuteChanged();
             });
         }
 
-        private bool CanSaveKeys() => _currentKeyPair != null;
+        private bool CanSaveKeys() => HasKeyPair;
+
         [RelayCommand]
         private async Task LoadKeysAsync()
         {
             await RunSafeAsync(async () =>
             {
                 var keys = await Task.Run(() => _rsaService.LoadKeysFromFiles());
-                _currentKeyPair = keys;
-
-                PublicKeyText = _currentKeyPair.PublicKey.KeyValue;
-                PrivateKeyText = _currentKeyPair.PrivateKey.KeyValue;
+                SetKeyPair(keys);
 
                 StatusMessage = "RSA ključevi učitani iz datoteka.";
                 AppendLog("Loaded RSA keys from files.");
-
-                SaveKeysCommand.NotifyCanExecuteChanged();
-                CopyPublicKeyCommand.NotifyCanExecuteChanged();
-                CopyPrivateKeyCommand.NotifyCanExecuteChanged();
             });
         }
 
-
         [RelayCommand(CanExecute = nameof(CanCopyPublicKey))]
-        private void CopyPublicKey() => TryCopyToClipboard(PublicKeyText, "Public key copied to clipboard.");
+        private void CopyPublicKey() =>
+            TryCopyToClipboard(PublicKeyText, "Public key copied to clipboard.");
 
         [RelayCommand(CanExecute = nameof(CanCopyPrivateKey))]
-        private void CopyPrivateKey() => TryCopyToClipboard(PrivateKeyText, "Private key copied to clipboard.");
+        private void CopyPrivateKey() =>
+            TryCopyToClipboard(PrivateKeyText, "Private key copied to clipboard.");
 
-        private bool CanCopyPublicKey() => !string.IsNullOrEmpty(PublicKeyText);
-        private bool CanCopyPrivateKey() => !string.IsNullOrEmpty(PrivateKeyText);
+        private bool CanCopyPublicKey() => !string.IsNullOrWhiteSpace(PublicKeyText);
+        private bool CanCopyPrivateKey() => !string.IsNullOrWhiteSpace(PrivateKeyText);
+
+        // ---------------- Observable callbacks ----------------
+
+        partial void OnPublicKeyTextChanged(string value) => UpdateCanExecute();
+        partial void OnPrivateKeyTextChanged(string value) => UpdateCanExecute();
 
         // ---------------- Helper methods ----------------
+
+        private void SetKeyPair(KeyPair keyPair)
+        {
+            _currentKeyPair = keyPair ?? throw new ArgumentNullException(nameof(keyPair));
+
+            PublicKeyText = _currentKeyPair.PublicKey?.KeyValue ?? string.Empty;
+            PrivateKeyText = _currentKeyPair.PrivateKey?.KeyValue ?? string.Empty;
+
+            UpdateCanExecute();
+        }
+
         private void AppendLog(string message)
         {
             var line = $"{DateTime.Now:HH:mm:ss} - {message}";
@@ -110,7 +121,7 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         {
             try
             {
-                if (!string.IsNullOrEmpty(text))
+                if (!string.IsNullOrWhiteSpace(text))
                 {
                     Clipboard.SetText(text);
                     AppendLog(logMessage);
@@ -131,6 +142,13 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
                 StatusMessage = $"Greška: {ex.Message}";
                 AppendLog(StatusMessage);
             }
+        }
+
+        private void UpdateCanExecute()
+        {
+            SaveKeysCommand?.NotifyCanExecuteChanged();
+            CopyPublicKeyCommand?.NotifyCanExecuteChanged();
+            CopyPrivateKeyCommand?.NotifyCanExecuteChanged();
         }
     }
 }

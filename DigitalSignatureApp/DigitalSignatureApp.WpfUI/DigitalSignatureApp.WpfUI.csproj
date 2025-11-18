@@ -9,12 +9,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="crypto_icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DigitalSignatureApp.Application\DigitalSignatureApp.Application.csproj" />
     <ProjectReference Include="..\DigitalSignatureApp.Infrastructure\DigitalSignatureApp.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="crypto_icon.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>

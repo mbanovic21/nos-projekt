@@ -23,9 +23,9 @@
             <GroupBox Header="AES ključ i IV" Margin="0,0,0,10">
                 <StackPanel>
                     <WrapPanel Margin="0,4">
-                        <Button Content="Generiraj ključ" Command="{Binding GenerateKeyCommand}" Margin="0,0,8,0"/>
-                        <Button Content="Spremi ključ (AppData)" Command="{Binding SaveKeyFilesCommand}" Margin="0,0,8,0"/>
-                        <Button Content="Učitaj ključ (AppData)" Command="{Binding LoadKeyFilesCommand}"/>
+                        <Button Content="Generiraj ključ" Command="{Binding GenerateKeyCommand}" Width="100" Height="30" Margin="0,0,8,0"/>
+                        <Button Content="Spremi ključ (AppData)" Command="{Binding SaveKeyFilesCommand}" Width="150" Margin="0,0,8,0"/>
+                        <Button Content="Učitaj ključ (AppData)" Command="{Binding LoadKeyFilesCommand}" Width="150"/>
                     </WrapPanel>
 
                     <CheckBox Content="Prikaži u hex" IsChecked="{Binding ShowHex}" Margin="0,8,0,6"/>
@@ -49,19 +49,19 @@
                     <TextBlock Text="Ulazna datoteka" FontWeight="SemiBold"/>
                     <StackPanel Orientation="Horizontal" Margin="0,6">
                         <TextBox Text="{Binding InputFilePath}" Width="420" IsReadOnly="True"/>
-                        <Button Content="Odaberi" Command="{Binding SelectInputFileCommand}" Margin="8,0,0,0"/>
+                        <Button Content="Odaberi" Command="{Binding SelectInputFileCommand}" Width="80" Height="30" Margin="8,0,0,0"/>
                     </StackPanel>
 
                     <TextBlock Text="Izlazna datoteka (opcionalno)" FontWeight="SemiBold" Margin="0,8,0,0"/>
                     <StackPanel Orientation="Horizontal" Margin="0,6">
                         <TextBox Text="{Binding OutputFilePath}" Width="420" IsReadOnly="True"/>
-                        <Button Content="Postavi" Command="{Binding SelectOutputFileCommand}" Margin="8,0,0,0"/>
+                        <Button Content="Postavi" Command="{Binding SelectOutputFileCommand}" Width="80" Height="30" Margin="8,0,0,0"/>
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,8,0,0">
-                <Button Content="Enkriptiraj" Command="{Binding EncryptFileCommand}" Width="130" Margin="0,0,8,0"/>
+                <Button Content="Enkriptiraj" Command="{Binding EncryptFileCommand}" Width="130" Height="30" Margin="0,0,8,0"/>
                 <Button Content="Dekriptiraj" Command="{Binding DecryptFileCommand}" Width="130"/>
             </StackPanel>
 
@@ -76,9 +76,9 @@
                 <TextBox Text="{Binding Log}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
             </ScrollViewer>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-                <Button Content="Kopiraj Key (Base64)" Margin="4"/>
-                <Button Content="Kopiraj IV (Base64)" Margin="4"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0" VerticalAlignment="Center">
+                <Button Content="Kopiraj Key (Base64)" Command="{Binding CopyKeyBase64Command}" Width="150" Height="30" Margin="4"/>
+                <Button Content="Kopiraj IV (Base64)" Command="{Binding CopyIvBase64Command}" Width="150" Margin="4"/>
             </StackPanel>
         </StackPanel>
     </Grid>

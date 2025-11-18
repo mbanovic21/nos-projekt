@@ -5,7 +5,6 @@ using DigitalSignatureApp.Infrastructure.Services;
 using Microsoft.Win32;
 using System;
 using System.IO;
-using System.Text;
 using System.Windows;
 
 namespace DigitalSignatureApp.WpfUI.ViewModels
@@ -31,52 +30,56 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         private readonly string _keyFilePath;
         private readonly string _ivFilePath;
 
+        private bool HasKeyAndIv => _key is { Length: > 0 } && _iv is { Length: > 0 };
+
         public AesEncryptionViewModel()
         {
             _aesService = new AesService();
+
             _keysFolder = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "DigitalSignatureApp", "keys");
+
             Directory.CreateDirectory(_keysFolder);
+
             _keyFilePath = Path.Combine(_keysFolder, "aes_key.bin");
             _ivFilePath = Path.Combine(_keysFolder, "aes_iv.bin");
 
             AppendLog("AES module initialized.");
         }
 
-        // -------------------- Commands --------------------
+        // -------------------- File selection --------------------
 
         [RelayCommand]
         private void SelectInputFile()
         {
             var dlg = new OpenFileDialog();
-            if (dlg.ShowDialog() == true)
+            if (dlg.ShowDialog() != true)
+                return;
+
+            InputFilePath = dlg.FileName;
+            AppendLog($"Odabrana ulazna datoteka: {InputFilePath}");
+
+            string ext = Path.GetExtension(InputFilePath)?.ToLower() ?? string.Empty;
+            string outputFolder = Path.GetDirectoryName(InputFilePath)!;
+            string baseName = Path.GetFileNameWithoutExtension(InputFilePath);
+
+            if (ext == ".enc")
             {
-                InputFilePath = dlg.FileName;
-                AppendLog($"Odabrana ulazna datoteka: {InputFilePath}");
+                string originalExtension = Path.GetExtension(baseName);
+                string cleanBaseName = Path.GetFileNameWithoutExtension(baseName);
+                string newExtension = string.IsNullOrEmpty(originalExtension) ? ".bin" : originalExtension;
 
-                string ext = Path.GetExtension(InputFilePath)?.ToLower() ?? "";
-                string outputFolder = Path.GetDirectoryName(InputFilePath)!;
-                string baseName = Path.GetFileNameWithoutExtension(InputFilePath);
-
-                if (ext == ".enc")
-                {
-                    string originalExtension = Path.GetExtension(baseName);
-                    string cleanBaseName = Path.GetFileNameWithoutExtension(baseName);
-                    string newExtension = string.IsNullOrEmpty(originalExtension) ? ".bin" : originalExtension;
-
-                    OutputFilePath = Path.Combine(outputFolder, $"{cleanBaseName}_decrypted{newExtension}");
-                    AppendLog($"Automatski postavljena izlazna datoteka (za dekripciju): {OutputFilePath}");
-                } else
-                {
-                    OutputFilePath = InputFilePath + ".enc";
-                    AppendLog($"Automatski postavljena izlazna datoteka (za enkripciju): {OutputFilePath}");
-                }
-
-                UpdateCanExecute();
+                OutputFilePath = Path.Combine(outputFolder, $"{cleanBaseName}_decrypted{newExtension}");
+                AppendLog($"Automatski postavljena izlazna datoteka (za dekripciju): {OutputFilePath}");
+            } else
+            {
+                OutputFilePath = InputFilePath + ".enc";
+                AppendLog($"Automatski postavljena izlazna datoteka (za enkripciju): {OutputFilePath}");
             }
-        }
 
+            UpdateCanExecute();
+        }
 
         [RelayCommand]
         private void SelectOutputFile()
@@ -86,30 +89,31 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
                 Filter = "Encrypted files (*.enc)|*.enc|All files (*.*)|*.*",
                 FileName = Path.GetFileName(OutputFilePath)
             };
-            if (dlg.ShowDialog() == true)
-            {
-                OutputFilePath = dlg.FileName;
-                AppendLog($"Selected output file: {OutputFilePath}");
-                UpdateCanExecute();
-            }
+
+            if (dlg.ShowDialog() != true)
+                return;
+
+            OutputFilePath = dlg.FileName;
+            AppendLog($"Selected output file: {OutputFilePath}");
+
+            UpdateCanExecute();
         }
+
+        // -------------------- Key management --------------------
 
         [RelayCommand]
         private void GenerateKey()
         {
-            (_key, _iv) = _aesService.GenerateKey();
-            if (_key == null || _iv == null)
+            var (key, iv) = _aesService.GenerateKey();
+
+            if (key == null || iv == null)
             {
                 StatusMessage = "Greška: ključ nije generiran.";
                 AppendLog(StatusMessage);
                 return;
             }
 
-            AesKeyBase64 = Convert.ToBase64String(_key);
-            AesIvBase64 = Convert.ToBase64String(_iv);
-
-            AesKeyHex = BitConverter.ToString(_key).Replace("-", "");
-            AesIvHex = BitConverter.ToString(_iv).Replace("-", "");
+            SetKeyAndIv(key, iv);
 
             StatusMessage = "Generirani AES ključ i IV.";
             AppendLog("Generated AES key and IV.");
@@ -124,6 +128,7 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             {
                 File.WriteAllBytes(_keyFilePath, _key);
                 File.WriteAllBytes(_ivFilePath, _iv);
+
                 StatusMessage = $"Ključ i IV spremljeni u {_keysFolder}";
                 AppendLog($"Saved key -> {_keyFilePath}");
                 AppendLog($"Saved iv  -> {_ivFilePath}");
@@ -134,7 +139,7 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             }
         }
 
-        private bool CanSaveKeys() => _key != null && _iv != null;
+        private bool CanSaveKeys() => HasKeyAndIv;
 
         [RelayCommand]
         private void LoadKeyFiles()
@@ -148,16 +153,14 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
                     return;
                 }
 
-                _key = File.ReadAllBytes(_keyFilePath);
-                _iv = File.ReadAllBytes(_ivFilePath);
+                var key = File.ReadAllBytes(_keyFilePath);
+                var iv = File.ReadAllBytes(_ivFilePath);
 
-                AesKeyBase64 = Convert.ToBase64String(_key);
-                AesIvBase64 = Convert.ToBase64String(_iv);
-                AesKeyHex = BitConverter.ToString(_key).Replace("-", "");
-                AesIvHex = BitConverter.ToString(_iv).Replace("-", "");
+                SetKeyAndIv(key, iv);
 
                 StatusMessage = "Ključ i IV učitani iz datoteka.";
                 AppendLog($"Loaded key from {_keyFilePath}");
+
                 UpdateCanExecute();
             } catch (Exception ex)
             {
@@ -166,19 +169,24 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
             }
         }
 
+        // -------------------- Encrypt / Decrypt --------------------
+
         [RelayCommand(CanExecute = nameof(CanEncrypt))]
         private void EncryptFile()
         {
             try
             {
-                if (string.IsNullOrEmpty(InputFilePath) || !File.Exists(InputFilePath))
+                if (!File.Exists(InputFilePath))
                 {
                     StatusMessage = "Ulazna datoteka ne postoji.";
                     AppendLog(StatusMessage);
                     return;
                 }
 
-                var output = string.IsNullOrEmpty(OutputFilePath) ? InputFilePath + ".enc" : OutputFilePath;
+                var output = string.IsNullOrEmpty(OutputFilePath)
+                    ? InputFilePath + ".enc"
+                    : OutputFilePath;
+
                 _aesService.EncryptFile(InputFilePath, output, _key, _iv);
 
                 StatusMessage = $"Datoteka enkriptirana -> {output}";
@@ -194,14 +202,14 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         private bool CanEncrypt() =>
             !string.IsNullOrEmpty(InputFilePath) &&
             File.Exists(InputFilePath) &&
-            _key != null && _iv != null;
-       
+            HasKeyAndIv;
+
         [RelayCommand(CanExecute = nameof(CanDecrypt))]
         private void DecryptFile()
         {
             try
             {
-                if (string.IsNullOrEmpty(InputFilePath) || !File.Exists(InputFilePath))
+                if (!File.Exists(InputFilePath))
                 {
                     StatusMessage = "Ulazna datoteka (kriptirana) ne postoji.";
                     AppendLog(StatusMessage);
@@ -224,19 +232,84 @@ namespace DigitalSignatureApp.WpfUI.ViewModels
         private bool CanDecrypt() =>
             !string.IsNullOrEmpty(InputFilePath) &&
             File.Exists(InputFilePath) &&
-            _key != null && _iv != null;
+            HasKeyAndIv;
+
+        // -------------------- Copy commands --------------------
+
+        [RelayCommand(CanExecute = nameof(CanCopyKeyAndIv))]
+        private void CopyKeyBase64()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(AesKeyBase64))
+                {
+                    StatusMessage = "Nema dostupnog AES ključa za kopiranje.";
+                    AppendLog(StatusMessage);
+                    return;
+                }
+
+                Clipboard.SetText(AesKeyBase64);
+                StatusMessage = "AES ključ (Base64) kopiran u međuspremnik.";
+                AppendLog(StatusMessage);
+            } catch (Exception ex)
+            {
+                StatusMessage = $"Greška pri kopiranju ključa: {ex.Message}";
+                AppendLog(StatusMessage);
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanCopyKeyAndIv))]
+        private void CopyIvBase64()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(AesIvBase64))
+                {
+                    StatusMessage = "Nema dostupnog AES IV za kopiranje.";
+                    AppendLog(StatusMessage);
+                    return;
+                }
+
+                Clipboard.SetText(AesIvBase64);
+                StatusMessage = "AES IV (Base64) kopiran u međuspremnik.";
+                AppendLog(StatusMessage);
+            } catch (Exception ex)
+            {
+                StatusMessage = $"Greška pri kopiranju IV-a: {ex.Message}";
+                AppendLog(StatusMessage);
+            }
+        }
+
+        private bool CanCopyKeyAndIv() => HasKeyAndIv;
+
+        // -------------------- Observable callbacks --------------------
 
         partial void OnShowHexChanged(bool value)
         {
             AppendLog($"ShowHex set to: {value}");
         }
 
-        // Helper methods
+        // -------------------- Helpers --------------------
+
+        private void SetKeyAndIv(byte[] key, byte[] iv)
+        {
+            _key = key;
+            _iv = iv;
+
+            AesKeyBase64 = Convert.ToBase64String(_key);
+            AesIvBase64 = Convert.ToBase64String(_iv);
+
+            AesKeyHex = BitConverter.ToString(_key).Replace("-", string.Empty);
+            AesIvHex = BitConverter.ToString(_iv).Replace("-", string.Empty);
+        }
+
         private void UpdateCanExecute()
         {
-            (EncryptFileCommand)?.NotifyCanExecuteChanged();
-            (DecryptFileCommand)?.NotifyCanExecuteChanged();
-            (SaveKeyFilesCommand)?.NotifyCanExecuteChanged();
+            EncryptFileCommand?.NotifyCanExecuteChanged();
+            DecryptFileCommand?.NotifyCanExecuteChanged();
+            SaveKeyFilesCommand?.NotifyCanExecuteChanged();
+            CopyKeyBase64Command?.NotifyCanExecuteChanged();
+            CopyIvBase64Command?.NotifyCanExecuteChanged();
         }
 
         private void AppendLog(string message)
