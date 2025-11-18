@@ -1,3 +1,5 @@
+Najprije klonirajte direktoriji.
+
 U slučaju da izvršna dadoteka iz trenutnog direktorija ne radi, odradite sljedeće korake.
 
 Koraci za pokretanje izvršne datoteke
